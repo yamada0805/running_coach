@@ -39,20 +39,16 @@
     <header class="mobile-hero">
       <div class="shell">
         <p class="eyebrow">Mobile Coach Console</p>
-        <h1>今日の記録をすぐ残して、固定フォーマットで振り返る。</h1>
-        <p class="hero-copy">
-          スマホ入力を前提に、Garmin画像の追加から評価確認までを縦導線で整理しました。
-          片手で入力しやすく、あとからコーチ判断も入れやすい構成です。
-        </p>
+        <h1>走ったら、すぐ残す。<br />すぐ判断する。</h1>
         <div class="hero-jump">
-          <a class="button button--primary" href="#today-log">今日の練習を登録</a>
+          <a class="button button--primary" href="#today-log">記録する</a>
           <a class="button button--ghost" href="#today-feedback">評価を見る</a>
         </div>
         <ul class="hero-tags" aria-label="アプリの特徴">
-          <li>スマホ入力優先</li>
-          <li>Garmin画像3枚対応</li>
-          <li>固定フォーマット評価</li>
-          <li>週間・4週間・大会ロードマップ</li>
+          <li>Garmin</li>
+          <li>固定評価</li>
+          <li>週計画</li>
+          <li>AI調整</li>
         </ul>
       </div>
     </header>
@@ -64,7 +60,7 @@
             <p class="section-label">Today Snapshot</p>
             <h2>現在地サマリー</h2>
           </div>
-          <p class="section-note">主目標、疲労度、走力の現在値を最初に確認します。</p>
+          <p class="section-note">今日の基準。</p>
         </div>
         <div class="snapshot-grid">
           <article class="snapshot-tile">
@@ -101,7 +97,7 @@
             <p class="section-label">Quick Log</p>
             <h2>今日の練習を登録</h2>
           </div>
-          <p class="section-note">入力の起点はGarmin画像。次にRPE・痛み・睡眠だけ入れます。</p>
+          <p class="section-note">画像 → 主観 → 保存。</p>
         </div>
 
         <div class="flow-strip" aria-label="入力手順">
@@ -120,23 +116,22 @@
               </div>
               <button class="button button--ghost button--small" type="button" id="run-ocr">画像から数値を読む</button>
             </div>
-            <p class="section-note">練習サマリー・ペース心拍グラフ・ラップの3枚を想定しています。</p>
             <div class="upload-stack">
               <label class="upload-card">
                 <span class="upload-card__title">練習サマリー</span>
-                <span class="upload-card__note">距離、時間、平均ペースが見える画面</span>
+                <span class="upload-card__note">距離 / 時間 / 平均</span>
                 <input name="summaryImage" type="file" accept="image/*" />
                 <span class="file-count" id="summary-count">未選択</span>
               </label>
               <label class="upload-card">
                 <span class="upload-card__title">ペース・心拍グラフ</span>
-                <span class="upload-card__note">平均心拍や強度変化が分かる画面</span>
+                <span class="upload-card__note">波形確認</span>
                 <input name="graphImage" type="file" accept="image/*" />
                 <span class="file-count" id="graph-count">未選択</span>
               </label>
               <label class="upload-card">
                 <span class="upload-card__title">ラップ一覧</span>
-                <span class="upload-card__note">区間ごとの乱れや傾向を読み取る用。2枚以上ある場合はまとめて選択できます。</span>
+                <span class="upload-card__note">複数選択可</span>
                 <input name="lapsImage" type="file" accept="image/*" multiple />
                 <span class="file-count" id="laps-count">未選択</span>
               </label>
@@ -208,7 +203,6 @@
                 <h3>OCR結果を補正</h3>
               </div>
             </div>
-            <p class="section-note">読み取り結果は必ず確認し、必要なら手修正してください。</p>
             <div class="compact-grid">
               <label>
                 距離(km)
@@ -250,7 +244,7 @@
             <p class="section-label">Fixed Feedback</p>
             <h2>固定フォーマット出力</h2>
           </div>
-          <p class="section-note">見出し順は固定です。スマホでは1項目ずつ読みやすく並べます。</p>
+          <p class="section-note">順番は固定。</p>
         </div>
         <div id="feedback-output" class="feedback-stack">
           <article class="feedback-card">
@@ -294,7 +288,7 @@
             <p class="section-label">Plans</p>
             <h2>提案メニュー</h2>
           </div>
-          <p class="section-note">週間、4週間、大会までの順で縦に確認します。</p>
+          <p class="section-note">週 / 4週 / 大会。</p>
         </div>
         <div class="plan-stack">
           <article class="plan-card">
@@ -318,7 +312,7 @@
             <p class="section-label">Setup</p>
             <h2>コーチ設計・選手情報・大会管理</h2>
           </div>
-          <p class="section-note">毎日使う画面の下にまとめ、必要なときだけ開きます。</p>
+          <p class="section-note">必要な時だけ開く。</p>
         </div>
 
         <details class="fold-card" open>

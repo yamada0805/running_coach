@@ -56,13 +56,26 @@ textarea {
 }
 
 .mobile-hero .shell {
-  padding: 24px 20px 18px;
+  padding: 22px 20px 16px;
   border-radius: 34px;
   background:
-    linear-gradient(180deg, rgba(255, 254, 251, 0.88), rgba(255, 246, 236, 0.9)),
+    linear-gradient(160deg, rgba(255, 252, 247, 0.96), rgba(255, 241, 227, 0.9)),
     var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.62);
   box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-hero .shell::after {
+  content: "";
+  position: absolute;
+  inset: auto -80px -120px auto;
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(44, 118, 111, 0.16), rgba(44, 118, 111, 0));
+  pointer-events: none;
 }
 
 .eyebrow,
@@ -85,7 +98,8 @@ summary {
 h1 {
   margin: 0;
   font-size: clamp(1.95rem, 8vw, 3.1rem);
-  line-height: 1.16;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
 .hero-copy {
@@ -156,7 +170,7 @@ h1 {
 .snapshot-tile__note,
 .list-note {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .status-text {
@@ -209,7 +223,7 @@ h1 {
 }
 
 .snapshot-tile {
-  padding: 16px;
+  padding: 14px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.58);
   border: 1px solid rgba(114, 90, 72, 0.1);
@@ -221,8 +235,10 @@ h1 {
 
 .snapshot-tile__label {
   margin: 0 0 6px;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .snapshot-tile__value {
@@ -242,11 +258,11 @@ h1 {
 }
 
 .flow-strip span {
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(114, 90, 72, 0.08);
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   font-weight: 800;
   text-align: center;
 }
@@ -273,7 +289,7 @@ h1 {
 }
 
 .phone-panel {
-  padding: 16px;
+  padding: 14px;
 }
 
 .planned-session-box {
@@ -353,12 +369,13 @@ h1 {
 .upload-card__title {
   display: block;
   font-weight: 900;
+  letter-spacing: -0.01em;
 }
 
 .upload-card__note {
   display: block;
   margin-top: 4px;
-  font-size: 0.83rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 
@@ -447,7 +464,7 @@ textarea:focus,
 
 .feedback-card,
 .plan-card {
-  padding: 16px;
+  padding: 14px;
 }
 
 .feedback-card h3,
