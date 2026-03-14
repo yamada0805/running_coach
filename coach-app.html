@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#d96d41" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Run Coach" />
+    <title>AIランニングコーチ | Mobile Coach Console</title>
+    <meta
+      name="description"
+      content="スマホでGarminスクリーンショットと主観データを入力し、固定フォーマットで練習評価と次回提案を確認できるAIランニングコーチWebアプリ。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="manifest" href="coach-app-manifest.webmanifest" />
+    <link rel="icon" href="assets/design/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/optimized/trainer-main.jpg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="coach-app.css" />
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+    <script src="coach-app.js" defer></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./coach-app-sw.js").catch((error) => {
+            console.error("service worker registration failed", error);
+          });
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <header class="mobile-hero">
+      <div class="shell">
+        <p class="eyebrow">Mobile Coach Console</p>
+        <h1>今日の記録をすぐ残して、固定フォーマットで振り返る。</h1>
+        <p class="hero-copy">
+          スマホ入力を前提に、Garmin画像の追加から評価確認までを縦導線で整理しました。
+          片手で入力しやすく、あとからコーチ判断も入れやすい構成です。
+        </p>
+        <div class="hero-jump">
+          <a class="button button--primary" href="#today-log">今日の練習を登録</a>
+          <a class="button button--ghost" href="#today-feedback">評価を見る</a>
+        </div>
+        <ul class="hero-tags" aria-label="アプリの特徴">
+          <li>スマホ入力優先</li>
+          <li>Garmin画像3枚対応</li>
+          <li>固定フォーマット評価</li>
+          <li>週間・4週間・大会ロードマップ</li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="shell mobile-shell">
+      <section class="phone-card card-snapshot" id="dashboard">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Today Snapshot</p>
+            <h2>現在地サマリー</h2>
+          </div>
+          <p class="section-note">主目標、疲労度、走力の現在値を最初に確認します。</p>
+        </div>
+        <div class="snapshot-grid">
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">疲労度</p>
+            <p class="snapshot-tile__value" id="fatigue-badge">未計算</p>
+            <p class="snapshot-tile__note" id="fatigue-note">ログ登録後に表示されます。</p>
+          </article>
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">走力の現在値</p>
+            <p class="snapshot-tile__value" id="fitness-badge">未計算</p>
+            <p class="snapshot-tile__note" id="fitness-note">主目標レースと最新ログをもとに算出します。</p>
+          </article>
+          <article class="snapshot-tile snapshot-tile--wide">
+            <p class="snapshot-tile__label">主目標レース</p>
+            <p class="snapshot-tile__value" id="goal-badge">未設定</p>
+            <p class="snapshot-tile__note" id="goal-note">大会を登録してください。</p>
+          </article>
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">現在の期</p>
+            <p class="snapshot-tile__value" id="phase-badge">未設定</p>
+            <p class="snapshot-tile__note" id="phase-note">期分け設定を保存してください。</p>
+          </article>
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">今週の主役</p>
+            <p class="snapshot-tile__value" id="focus-badge">未設定</p>
+            <p class="snapshot-tile__note" id="focus-note">AIと一緒に微修正する基準です。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="phone-card card-log" id="today-log">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Quick Log</p>
+            <h2>今日の練習を登録</h2>
+          </div>
+          <p class="section-note">入力の起点はGarmin画像。次にRPE・痛み・睡眠だけ入れます。</p>
+        </div>
+
+        <div class="flow-strip" aria-label="入力手順">
+          <span>1. 画像追加</span>
+          <span>2. 主観入力</span>
+          <span>3. OCR補正</span>
+          <span>4. 評価確認</span>
+        </div>
+
+        <form id="log-form" class="mobile-form">
+          <div class="phone-panel phone-panel--accent">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Step 1</p>
+                <h3>Garmin画像を追加</h3>
+              </div>
+              <button class="button button--ghost button--small" type="button" id="run-ocr">画像から数値を読む</button>
+            </div>
+            <p class="section-note">練習サマリー・ペース心拍グラフ・ラップの3枚を想定しています。</p>
+            <div class="upload-stack">
+              <label class="upload-card">
+                <span class="upload-card__title">練習サマリー</span>
+                <span class="upload-card__note">距離、時間、平均ペースが見える画面</span>
+                <input name="summaryImage" type="file" accept="image/*" />
+                <span class="file-count" id="summary-count">未選択</span>
+              </label>
+              <label class="upload-card">
+                <span class="upload-card__title">ペース・心拍グラフ</span>
+                <span class="upload-card__note">平均心拍や強度変化が分かる画面</span>
+                <input name="graphImage" type="file" accept="image/*" />
+                <span class="file-count" id="graph-count">未選択</span>
+              </label>
+              <label class="upload-card">
+                <span class="upload-card__title">ラップ一覧</span>
+                <span class="upload-card__note">区間ごとの乱れや傾向を読み取る用。2枚以上ある場合はまとめて選択できます。</span>
+                <input name="lapsImage" type="file" accept="image/*" multiple />
+                <span class="file-count" id="laps-count">未選択</span>
+              </label>
+            </div>
+            <p class="status-text" id="ocr-status" aria-live="polite"></p>
+          </div>
+
+          <div class="phone-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Step 2</p>
+                <h3>最低限の主観入力</h3>
+              </div>
+            </div>
+            <div class="planned-session-box" id="planned-session-box">
+              <p class="planned-session-box__label">この日の予定メニュー</p>
+              <p class="planned-session-box__title" id="planned-session-title">未登録</p>
+              <p class="planned-session-box__note" id="planned-session-note">週次予定メニューを登録すると、ここに自動表示されます。</p>
+              <div class="planned-session-details" id="planned-session-details"></div>
+            </div>
+            <div class="compact-grid">
+              <label>
+                日付
+                <input name="date" type="date" required />
+              </label>
+              <label>
+                セッション分類
+                <select name="sessionType">
+                  <option value="未分類">未分類</option>
+                  <option value="E">Eラン</option>
+                  <option value="M">マラソンペース走</option>
+                  <option value="T">閾値走</option>
+                  <option value="I">インターバル</option>
+                  <option value="L">ロング走</option>
+                  <option value="R">レース</option>
+                  <option value="休養">休養</option>
+                </select>
+              </label>
+            </div>
+            <div class="metric-inputs">
+              <label class="metric-pill">
+                <span>RPE</span>
+                <input name="rpe" type="number" min="1" max="10" placeholder="7" required />
+              </label>
+              <label class="metric-pill">
+                <span>睡眠</span>
+                <input name="sleepHours" type="number" min="0" max="24" step="0.5" placeholder="7.0" required />
+              </label>
+              <label class="metric-pill metric-pill--select">
+                <span>痛み</span>
+                <select name="pain">
+                  <option value="なし">なし</option>
+                  <option value="軽度">軽度</option>
+                  <option value="中等度">中等度</option>
+                  <option value="強い">強い</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              補足メモ
+              <textarea name="notes" rows="3" placeholder="暑さ、補給、違和感、フォーム感覚など"></textarea>
+            </label>
+          </div>
+
+          <div class="phone-panel">
+            <div class="panel-head">
+              <div>
+                <p class="section-label">Step 3</p>
+                <h3>OCR結果を補正</h3>
+              </div>
+            </div>
+            <p class="section-note">読み取り結果は必ず確認し、必要なら手修正してください。</p>
+            <div class="compact-grid">
+              <label>
+                距離(km)
+                <input name="distanceKm" type="number" min="0" step="0.01" />
+              </label>
+              <label>
+                時間
+                <input name="duration" type="text" placeholder="01:23:45" />
+              </label>
+              <label>
+                平均ペース
+                <input name="avgPace" type="text" placeholder="04:12/km" />
+              </label>
+              <label>
+                平均心拍
+                <input name="avgHr" type="number" min="0" max="240" />
+              </label>
+              <label>
+                最大心拍
+                <input name="maxHr" type="number" min="0" max="240" />
+              </label>
+            </div>
+            <label>
+              ラップ要約
+              <textarea name="lapsSummary" rows="3" placeholder="OCRで拾ったラップを残すか、手動で要約を記入"></textarea>
+            </label>
+          </div>
+
+          <div class="sticky-submit">
+            <button class="button button--primary button--full" type="submit">保存して固定フィードバックを作成</button>
+            <p class="status-text" id="log-status" aria-live="polite"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="phone-card card-feedback" id="today-feedback">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Fixed Feedback</p>
+            <h2>固定フォーマット出力</h2>
+          </div>
+          <p class="section-note">見出し順は固定です。スマホでは1項目ずつ読みやすく並べます。</p>
+        </div>
+        <div id="feedback-output" class="feedback-stack">
+          <article class="feedback-card">
+            <h3>今日の練習評価</h3>
+            <p>まだ評価はありません。</p>
+          </article>
+          <article class="feedback-card">
+            <h3>良かった点</h3>
+            <ul><li>ログを登録すると表示されます。</li></ul>
+          </article>
+          <article class="feedback-card">
+            <h3>改善点</h3>
+            <ul><li>ログを登録すると表示されます。</li></ul>
+          </article>
+          <article class="feedback-card">
+            <h3>疲労度評価</h3>
+            <p>ログを登録すると表示されます。</p>
+          </article>
+          <article class="feedback-card">
+            <h3>走力への意味づけ</h3>
+            <p>ログを登録すると表示されます。</p>
+          </article>
+          <article class="feedback-card">
+            <h3>目標に対する現在値</h3>
+            <p>ログを登録すると表示されます。</p>
+          </article>
+          <article class="feedback-card">
+            <h3>次回練習の提案（確認）</h3>
+            <p>ログを登録すると表示されます。</p>
+          </article>
+          <article class="feedback-card">
+            <h3>補足コメント</h3>
+            <p>ログを登録すると表示されます。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="phone-card card-plans">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Plans</p>
+            <h2>提案メニュー</h2>
+          </div>
+          <p class="section-note">週間、4週間、大会までの順で縦に確認します。</p>
+        </div>
+        <div class="plan-stack">
+          <article class="plan-card">
+            <h3>週間提案</h3>
+            <div id="weekly-plan" class="plan-card__body empty-state">ログ登録後に提案します。</div>
+          </article>
+          <article class="plan-card">
+            <h3>4週間ブロック</h3>
+            <div id="block-plan" class="plan-card__body empty-state">大会までの期分けを反映して表示します。</div>
+          </article>
+          <article class="plan-card">
+            <h3>ロードマップ</h3>
+            <div id="roadmap-plan" class="plan-card__body empty-state">主目標レースを設定すると表示されます。</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="phone-card card-manage">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Setup</p>
+            <h2>コーチ設計・選手情報・大会管理</h2>
+          </div>
+          <p class="section-note">毎日使う画面の下にまとめ、必要なときだけ開きます。</p>
+        </div>
+
+        <details class="fold-card" open>
+          <summary>コーチ設計を登録する</summary>
+          <form id="coaching-form" class="mobile-form mobile-form--compact">
+            <div class="compact-grid">
+              <label>
+                現在の期
+                <select name="currentPhase">
+                  <option value="導入期">導入期</option>
+                  <option value="構築期" selected>構築期</option>
+                  <option value="特異期">特異期</option>
+                  <option value="調整期">調整期</option>
+                </select>
+              </label>
+              <label>
+                4週サイクル
+                <select name="cycleWeek">
+                  <option value="1">1週目</option>
+                  <option value="2">2週目</option>
+                  <option value="3">3週目</option>
+                  <option value="4">4週目（リフレッシュ）</option>
+                </select>
+              </label>
+              <label>
+                今週の主役
+                <select name="currentFocus">
+                  <option value="LT1">LT1</option>
+                  <option value="LT1.5" selected>LT1.5</option>
+                  <option value="ロング">ロング</option>
+                  <option value="回復">回復</option>
+                </select>
+              </label>
+              <label>
+                ジョグ心拍上限
+                <input name="jogHrCap" type="text" value="75%HRmax (~150bpm)" />
+              </label>
+              <label>
+                リフレッシュ週の距離目安
+                <input name="refreshMileage" type="text" value="通常週の75-80%" />
+              </label>
+              <label>
+                リフレッシュ週のロング目安
+                <input name="refreshLongRun" type="text" value="100-120分 -> 75-85分" />
+              </label>
+            </div>
+            <label>
+              週間の基本骨格
+              <textarea name="weeklyStructure" rows="5">月 ジョグ
+火 LT1 or LT1.5
+水 ジョグ + スプリント
+木 ジョグ
+金 LT1 or LT1.5
+土 ロング
+日 オフ or 軽いジョグ</textarea>
+            </label>
+            <label>
+              LT1メニュー辞書
+              <textarea name="lt1MenuLibrary" rows="8">5分×7 (r60s) / 基準 150-156bpm / cap 160bpm / レスト 130-140bpm
+6分×5-6 (r60s) / 基準 150-156bpm / cap 160bpm / レスト 130-140bpm
+30-40分モデレート / 基準 150-156bpm / cap 160bpm</textarea>
+            </label>
+            <label>
+              LT1.5メニュー辞書
+              <textarea name="lt15MenuLibrary" rows="8">3分×8-10 (r50-60s) / 基準 164-168bpm / cap 170bpm / レスト 144-156bpm
+5分×4-5 (r60-75s) / 基準 164-169bpm / cap 170bpm
+15-20分×2 (r2-3分) / 基準 164-168bpm / cap 169-170bpm</textarea>
+            </label>
+            <label>
+              ロングメニュー辞書
+              <textarea name="longRunLibrary" rows="7">ベースロング 100-110分 / 前半 ~150bpm / 後半もLT1未満中心
+ビルドアップロング 100-120分 / 後半だけLT1付近まで
+マラソン耐性ロング 100-120分 / 動きを保ったまま後半の粘り確認
+30km超はレース前に1-2回のみ</textarea>
+            </label>
+            <label>
+              AIとの進め方メモ
+              <textarea name="collaborationStyle" rows="4">メニューは固定ではなく、期分けと4週サイクルを前提にAIと一緒に考える。提案は新規作成よりも既存メニューの微修正を基本とする。</textarea>
+            </label>
+            <div class="form-actions">
+              <button class="button button--primary button--full" type="submit">コーチ設計を保存</button>
+              <p class="status-text" id="coaching-status" aria-live="polite"></p>
+            </div>
+          </form>
+        </details>
+
+        <details class="fold-card" open>
+          <summary>曜日ごとの予定メニューを登録する</summary>
+          <form id="week-plan-form" class="mobile-form mobile-form--compact">
+            <div class="compact-grid">
+              <label>
+                週の開始日
+                <input name="weekStart" type="date" />
+              </label>
+              <label>
+                週のテーマ
+                <input name="theme" type="text" placeholder="例: 構築2週目 / LT1.5主役" />
+              </label>
+            </div>
+            <div class="compact-grid">
+              <label>
+                月
+                <input name="monday" type="text" placeholder="ジョグ 50-60分" />
+              </label>
+              <label>
+                火
+                <input name="tuesday" type="text" placeholder="LT1.5 3分×10 (r50s)" />
+              </label>
+              <label>
+                水
+                <input name="wednesday" type="text" placeholder="ジョグ + スプリント" />
+              </label>
+              <label>
+                木
+                <input name="thursday" type="text" placeholder="ジョグ 45-60分" />
+              </label>
+              <label>
+                金
+                <input name="friday" type="text" placeholder="LT1 6分×5-6 (r60s)" />
+              </label>
+              <label>
+                土
+                <input name="saturday" type="text" placeholder="ロング 100-120分" />
+              </label>
+              <label>
+                日
+                <input name="sunday" type="text" placeholder="オフ or 軽いジョグ" />
+              </label>
+            </div>
+            <label>
+              この週の補足
+              <textarea name="notes" rows="3" placeholder="例: 火を主役、土は抑えめ。疲労高ければ金LT1を短縮。"></textarea>
+            </label>
+            <div class="form-actions">
+              <button class="button button--primary button--full" type="submit">この週の予定を保存</button>
+              <p class="status-text" id="week-plan-status" aria-live="polite"></p>
+            </div>
+          </form>
+          <div id="week-plan-list" class="list-stack"></div>
+        </details>
+
+        <details class="fold-card" open>
+          <summary>大会を登録する</summary>
+          <form id="race-form" class="mobile-form mobile-form--compact">
+            <div class="compact-grid">
+              <label>
+                大会名
+                <input name="name" type="text" placeholder="例: 別府大分毎日マラソン" required />
+              </label>
+              <label>
+                開催日
+                <input name="date" type="date" required />
+              </label>
+              <label>
+                種目
+                <select name="distance" required>
+                  <option value="5km">5km</option>
+                  <option value="10km">10km</option>
+                  <option value="ハーフ">ハーフ</option>
+                  <option value="フル" selected>フル</option>
+                </select>
+              </label>
+              <label>
+                目標タイム
+                <input name="targetTime" type="text" placeholder="02:45:00" required />
+              </label>
+              <label>
+                優先度
+                <select name="priority">
+                  <option value="main">主目標</option>
+                  <option value="sub">サブ目標</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              メモ
+              <textarea name="notes" rows="2" placeholder="コース特性、通過目安、暑熱対策など"></textarea>
+            </label>
+            <div class="form-actions">
+              <button class="button button--primary button--full" type="submit">大会を追加</button>
+              <p class="status-text" id="race-status" aria-live="polite"></p>
+            </div>
+          </form>
+          <div id="race-list" class="list-stack" aria-live="polite"></div>
+        </details>
+
+        <details class="fold-card">
+          <summary>プロフィールを登録する</summary>
+          <form id="profile-form" class="mobile-form mobile-form--compact">
+            <div class="compact-grid">
+              <label>
+                名前
+                <input name="name" type="text" placeholder="例: 山田紘暉" />
+              </label>
+              <label>
+                年齢
+                <input name="age" type="number" min="0" max="100" placeholder="31" />
+              </label>
+              <label>
+                性別
+                <select name="gender">
+                  <option value="">選択</option>
+                  <option value="男性">男性</option>
+                  <option value="女性">女性</option>
+                  <option value="その他">その他</option>
+                </select>
+              </label>
+              <label>
+                身長(cm)
+                <input name="heightCm" type="number" min="0" max="250" placeholder="170" />
+              </label>
+              <label>
+                体重(kg)
+                <input name="weightKg" type="number" min="0" max="200" step="0.1" placeholder="58.0" />
+              </label>
+              <label>
+                週間走行距離の目安(km)
+                <input name="weeklyMileage" type="number" min="0" max="300" step="1" placeholder="80" />
+              </label>
+              <label>
+                週の練習頻度
+                <input name="trainingDaysPerWeek" type="number" min="0" max="14" placeholder="6" />
+              </label>
+              <label>
+                5km PB
+                <input name="pb5k" type="text" placeholder="00:17:30" />
+              </label>
+              <label>
+                10km PB
+                <input name="pb10k" type="text" placeholder="00:36:50" />
+              </label>
+              <label>
+                ハーフPB
+                <input name="pbHalf" type="text" placeholder="01:20:40" />
+              </label>
+              <label>
+                フルPB
+                <input name="pbFull" type="text" placeholder="02:53:20" />
+              </label>
+            </div>
+            <label>
+              ケガ歴・注意点
+              <textarea name="injuryHistory" rows="3" placeholder="例: 右膝の腸脛靭帯炎を繰り返す。"></textarea>
+            </label>
+            <label>
+              現在の目標メモ
+              <textarea name="goalNotes" rows="3" placeholder="例: 秋のフルで2時間45分切り。夏場は閾値耐性を強化したい。"></textarea>
+            </label>
+            <div class="form-actions">
+              <button class="button button--primary button--full" type="submit">プロフィールを保存</button>
+              <p class="status-text" id="profile-status" aria-live="polite"></p>
+            </div>
+          </form>
+        </details>
+      </section>
+
+      <section class="phone-card card-history">
+        <details class="fold-card">
+          <summary>保存済みログを見る</summary>
+          <div id="log-list" class="list-stack"></div>
+        </details>
+      </section>
+
+      <section class="phone-card card-ai">
+        <details class="fold-card">
+          <summary>AI連携用の要約を見る</summary>
+          <textarea id="ai-handoff" rows="14" readonly>ログ登録後にAIへ渡す要約が生成されます。</textarea>
+        </details>
+      </section>
+    </main>
+  </body>
+</html>

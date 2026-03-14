@@ -1,0 +1,21 @@
+{
+  "name": "AIランニングコーチ",
+  "short_name": "Run Coach",
+  "start_url": "./coach-app.html",
+  "display": "standalone",
+  "background_color": "#f6efe7",
+  "theme_color": "#d96d41",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "assets/optimized/trainer-main.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/design/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
