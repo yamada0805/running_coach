@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="theme-color" content="#d96d41" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Run Coach" />
+    <title>AIランニングコーチ | Settings</title>
+    <link rel="manifest" href="coach-app-manifest.webmanifest" />
+    <link rel="icon" href="assets/design/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/optimized/trainer-main.jpg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="coach-app.css" />
+    <script src="coach-app.js" defer></script>
+  </head>
+  <body>
+    <header class="mobile-hero">
+      <div class="shell">
+        <p class="eyebrow">Settings</p>
+        <h1>設計を整える。<br />判断の土台を作る。</h1>
+        <div class="hero-jump">
+          <a class="button button--primary" href="coach-app.html">記録に戻る</a>
+          <a class="button button--ghost" href="#setup">設定を見る</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell mobile-shell" id="setup">
+      <section class="phone-card">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Setup</p>
+            <h2>コーチ設計</h2>
+          </div>
+        </div>
+        <form id="coaching-form" class="mobile-form mobile-form--compact">
+          <div class="compact-grid">
+            <label>
+              現在の期
+              <select name="currentPhase">
+                <option value="導入期">導入期</option>
+                <option value="構築期">構築期</option>
+                <option value="特異期">特異期</option>
+                <option value="調整期">調整期</option>
+              </select>
+            </label>
+            <label>
+              4週サイクル
+              <select name="cycleWeek">
+                <option value="1">1週目</option>
+                <option value="2">2週目</option>
+                <option value="3">3週目</option>
+                <option value="4">4週目（リフレッシュ）</option>
+              </select>
+            </label>
+            <label>
+              今週の主役
+              <select name="currentFocus">
+                <option value="LT1">LT1</option>
+                <option value="LT1.5">LT1.5</option>
+                <option value="ロング">ロング</option>
+                <option value="回復">回復</option>
+              </select>
+            </label>
+            <label>
+              ジョグ心拍上限
+              <input name="jogHrCap" type="text" />
+            </label>
+            <label>
+              リフレッシュ週の距離目安
+              <input name="refreshMileage" type="text" />
+            </label>
+            <label>
+              リフレッシュ週のロング目安
+              <input name="refreshLongRun" type="text" />
+            </label>
+          </div>
+          <label>
+            週間の基本骨格
+            <textarea name="weeklyStructure" rows="5"></textarea>
+          </label>
+          <label>
+            LT1メニュー辞書
+            <textarea name="lt1MenuLibrary" rows="8"></textarea>
+          </label>
+          <label>
+            LT1.5メニュー辞書
+            <textarea name="lt15MenuLibrary" rows="8"></textarea>
+          </label>
+          <label>
+            ロングメニュー辞書
+            <textarea name="longRunLibrary" rows="7"></textarea>
+          </label>
+          <label>
+            AIとの進め方メモ
+            <textarea name="collaborationStyle" rows="4"></textarea>
+          </label>
+          <div class="form-actions">
+            <button class="button button--primary button--full" type="submit">コーチ設計を保存</button>
+            <p class="status-text" id="coaching-status" aria-live="polite"></p>
+          </div>
+        </form>
+      </section>
+
+      <section class="phone-card">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Week Plan</p>
+            <h2>曜日ごとの予定</h2>
+          </div>
+        </div>
+        <form id="week-plan-form" class="mobile-form mobile-form--compact">
+          <div class="compact-grid">
+            <label>
+              週の開始日
+              <input name="weekStart" type="date" />
+            </label>
+            <label>
+              週のテーマ
+              <input name="theme" type="text" />
+            </label>
+          </div>
+          <div class="compact-grid">
+            <label><span>月</span><input name="monday" type="text" /></label>
+            <label><span>火</span><input name="tuesday" type="text" /></label>
+            <label><span>水</span><input name="wednesday" type="text" /></label>
+            <label><span>木</span><input name="thursday" type="text" /></label>
+            <label><span>金</span><input name="friday" type="text" /></label>
+            <label><span>土</span><input name="saturday" type="text" /></label>
+            <label><span>日</span><input name="sunday" type="text" /></label>
+          </div>
+          <label>
+            この週の補足
+            <textarea name="notes" rows="3"></textarea>
+          </label>
+          <div class="form-actions">
+            <button class="button button--primary button--full" type="submit">この週の予定を保存</button>
+            <p class="status-text" id="week-plan-status" aria-live="polite"></p>
+          </div>
+        </form>
+        <div id="week-plan-list" class="list-stack"></div>
+      </section>
+
+      <section class="phone-card">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Races</p>
+            <h2>大会管理</h2>
+          </div>
+        </div>
+        <form id="race-form" class="mobile-form mobile-form--compact">
+          <div class="compact-grid">
+            <label><span>大会名</span><input name="name" type="text" required /></label>
+            <label><span>開催日</span><input name="date" type="date" required /></label>
+            <label>
+              <span>種目</span>
+              <select name="distance" required>
+                <option value="5km">5km</option>
+                <option value="10km">10km</option>
+                <option value="ハーフ">ハーフ</option>
+                <option value="フル">フル</option>
+              </select>
+            </label>
+            <label><span>目標タイム</span><input name="targetTime" type="text" required /></label>
+            <label>
+              <span>優先度</span>
+              <select name="priority">
+                <option value="main">主目標</option>
+                <option value="sub">サブ目標</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            メモ
+            <textarea name="notes" rows="2"></textarea>
+          </label>
+          <div class="form-actions">
+            <button class="button button--primary button--full" type="submit">大会を追加</button>
+            <p class="status-text" id="race-status" aria-live="polite"></p>
+          </div>
+        </form>
+        <div id="race-list" class="list-stack"></div>
+      </section>
+
+      <section class="phone-card">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Profile</p>
+            <h2>プロフィール</h2>
+          </div>
+        </div>
+        <form id="profile-form" class="mobile-form mobile-form--compact">
+          <div class="compact-grid">
+            <label><span>名前</span><input name="name" type="text" /></label>
+            <label><span>年齢</span><input name="age" type="number" min="0" max="100" /></label>
+            <label>
+              <span>性別</span>
+              <select name="gender">
+                <option value="">選択</option>
+                <option value="男性">男性</option>
+                <option value="女性">女性</option>
+                <option value="その他">その他</option>
+              </select>
+            </label>
+            <label><span>身長(cm)</span><input name="heightCm" type="number" min="0" max="250" /></label>
+            <label><span>体重(kg)</span><input name="weightKg" type="number" min="0" max="200" step="0.1" /></label>
+            <label><span>週間走行距離</span><input name="weeklyMileage" type="number" min="0" max="300" step="1" /></label>
+            <label><span>週の練習頻度</span><input name="trainingDaysPerWeek" type="number" min="0" max="14" /></label>
+            <label><span>5km PB</span><input name="pb5k" type="text" /></label>
+            <label><span>10km PB</span><input name="pb10k" type="text" /></label>
+            <label><span>ハーフPB</span><input name="pbHalf" type="text" /></label>
+            <label><span>フルPB</span><input name="pbFull" type="text" /></label>
+          </div>
+          <label><span>ケガ歴</span><textarea name="injuryHistory" rows="3"></textarea></label>
+          <label><span>目標メモ</span><textarea name="goalNotes" rows="3"></textarea></label>
+          <div class="form-actions">
+            <button class="button button--primary button--full" type="submit">プロフィールを保存</button>
+            <p class="status-text" id="profile-status" aria-live="polite"></p>
+          </div>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

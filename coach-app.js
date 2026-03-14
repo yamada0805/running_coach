@@ -83,7 +83,7 @@ bindFileCountLabels();
 bindPlannedSessionPreview();
 renderAll();
 
-profileForm.addEventListener("submit", (event) => {
+profileForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(profileForm);
   state.profile = Object.fromEntries(formData.entries());
@@ -92,7 +92,7 @@ profileForm.addEventListener("submit", (event) => {
   renderAll();
 });
 
-coachingForm.addEventListener("submit", (event) => {
+coachingForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(coachingForm);
   state.coaching = {
@@ -104,7 +104,7 @@ coachingForm.addEventListener("submit", (event) => {
   renderAll();
 });
 
-weekPlanForm.addEventListener("submit", (event) => {
+weekPlanForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(weekPlanForm);
   const weekPlan = {
@@ -134,7 +134,7 @@ weekPlanForm.addEventListener("submit", (event) => {
   renderAll();
 });
 
-raceForm.addEventListener("submit", (event) => {
+raceForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(raceForm);
   const race = {
@@ -159,7 +159,7 @@ raceForm.addEventListener("submit", (event) => {
   renderAll();
 });
 
-logForm.addEventListener("submit", (event) => {
+logForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(logForm);
   const log = {
@@ -193,7 +193,7 @@ logForm.addEventListener("submit", (event) => {
   renderAll();
 });
 
-runOcrButton.addEventListener("click", async () => {
+runOcrButton?.addEventListener("click", async () => {
   const summaryFile = logForm.elements.summaryImage.files[0];
   const graphFile = logForm.elements.graphImage.files[0];
   const lapsFiles = Array.from(logForm.elements.lapsImage.files || []);
@@ -252,7 +252,7 @@ function saveState() {
 
 function hydrateForms() {
   for (const [key, value] of Object.entries(state.profile || {})) {
-    const field = profileForm.elements.namedItem(key);
+    const field = profileForm?.elements?.namedItem(key);
     if (field) field.value = value;
   }
 
@@ -296,6 +296,7 @@ function bindPlannedSessionPreview() {
 }
 
 function updatePlannedSessionPreview() {
+  if (!logForm || !plannedSessionTitle || !plannedSessionNote || !plannedSessionDetails) return;
   const dateField = logForm?.elements?.namedItem("date");
   const plannedSession = getPlannedSessionForDate(state.weekPlans, dateField?.value || today());
 
@@ -343,6 +344,7 @@ function renderAll() {
 }
 
 function renderWeekPlans() {
+  if (!weekPlanList) return;
   if (!state.weekPlans.length) {
     weekPlanList.innerHTML = `<div class="list-item"><p class="list-note">まだ週次の予定メニューは登録されていません。</p></div>`;
     return;
@@ -379,6 +381,7 @@ function renderWeekPlans() {
 }
 
 function renderRaces() {
+  if (!raceList) return;
   if (!state.races.length) {
     raceList.innerHTML = `<div class="list-item"><p class="list-note">まだ大会は登録されていません。</p></div>`;
     return;
@@ -405,6 +408,7 @@ function renderRaces() {
 }
 
 function renderDashboard() {
+  if (!fatigueBadge || !fatigueNote || !fitnessBadge || !fitnessNote || !goalBadge || !goalNote || !weeklyPlan || !blockPlan || !roadmapPlan) return;
   const latestLog = state.logs[0];
   const dashboard = buildDashboard(state, latestLog);
 
@@ -434,6 +438,7 @@ function renderDashboard() {
 }
 
 function renderLogs() {
+  if (!logList) return;
   if (!state.logs.length) {
     logList.innerHTML = `<div class="list-item"><p class="list-note">まだログはありません。</p></div>`;
     return;
@@ -460,6 +465,7 @@ function renderLogs() {
 }
 
 function renderFeedback() {
+  if (!feedbackOutput) return;
   const source = state.latestFeedback || (state.logs[0] ? buildFeedback(state.logs[0], state) : null);
   if (!source) return;
 
@@ -476,6 +482,7 @@ function renderFeedback() {
 }
 
 function renderAiHandoff() {
+  if (!aiHandoff) return;
   const latestLog = state.logs[0];
   if (!latestLog) {
     aiHandoff.value = "ログ登録後にAIへ渡す要約が生成されます。";
