@@ -48,6 +48,8 @@ const lapsCount = document.getElementById("laps-count");
 const plannedSessionTitle = document.getElementById("planned-session-title");
 const plannedSessionNote = document.getElementById("planned-session-note");
 const plannedSessionDetails = document.getElementById("planned-session-details");
+const environmentField = logForm?.elements?.namedItem("environment");
+const temperatureField = logForm?.elements?.namedItem("temperatureC");
 
 const profileStatus = document.getElementById("profile-status");
 const coachingStatus = document.getElementById("coaching-status");
@@ -61,6 +63,7 @@ const weekPlanList = document.getElementById("week-plan-list");
 const logList = document.getElementById("log-list");
 const feedbackOutput = document.getElementById("feedback-output");
 const aiHandoff = document.getElementById("ai-handoff");
+const feedbackSection = document.getElementById("today-feedback");
 
 const fatigueBadge = document.getElementById("fatigue-badge");
 const fatigueNote = document.getElementById("fatigue-note");
@@ -81,6 +84,7 @@ seedDefaultDate();
 seedDefaultWeekStart();
 bindFileCountLabels();
 bindPlannedSessionPreview();
+bindEnvironmentField();
 renderAll();
 
 profileForm?.addEventListener("submit", (event) => {
@@ -166,6 +170,8 @@ logForm?.addEventListener("submit", (event) => {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     date: formData.get("date")?.toString() || "",
+    environment: formData.get("environment")?.toString() || "outdoor",
+    temperatureC: formData.get("environment")?.toString() === "treadmill" ? null : nullableNumberValue(formData.get("temperatureC")),
     rpe: numberValue(formData.get("rpe")),
     pain: formData.get("pain")?.toString() || "なし",
     sleepHours: numberValue(formData.get("sleepHours")),
@@ -185,12 +191,14 @@ logForm?.addEventListener("submit", (event) => {
   state.logs.sort((a, b) => new Date(b.date) - new Date(a.date));
   state.latestFeedback = buildFeedback(log, state);
   saveState();
-  logStatus.textContent = "ログを保存し、評価を更新しました。";
+  logStatus.textContent = "保存しました。固定フィードバックへ移動します。";
   logForm.reset();
   seedDefaultDate();
+  syncEnvironmentField();
   updateFileCountLabels();
   updatePlannedSessionPreview();
   renderAll();
+  feedbackSection?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 runOcrButton?.addEventListener("click", async () => {
@@ -266,6 +274,21 @@ function seedDefaultDate() {
   const dateField = logForm?.elements?.namedItem("date");
   if (dateField && !dateField.value) {
     dateField.value = today();
+  }
+}
+
+function bindEnvironmentField() {
+  environmentField?.addEventListener("change", syncEnvironmentField);
+  syncEnvironmentField();
+}
+
+function syncEnvironmentField() {
+  if (!environmentField || !temperatureField) return;
+  const isTreadmill = environmentField.value === "treadmill";
+  temperatureField.disabled = isTreadmill;
+  temperatureField.placeholder = isTreadmill ? "不要" : "12";
+  if (isTreadmill) {
+    temperatureField.value = "";
   }
 }
 
@@ -454,7 +477,7 @@ function renderLogs() {
             <strong>${escapeHtml(log.date)} / ${escapeHtml(log.sessionType)}</strong>
             <span class="pill">${feedback.fatigueBadge}</span>
           </div>
-          <p>RPE ${log.rpe || "-"} / 痛み ${escapeHtml(log.pain)} / 睡眠 ${displayNumber(log.sleepHours)}時間</p>
+          <p>RPE ${log.rpe || "-"} / 痛み ${escapeHtml(log.pain)} / 睡眠 ${displayNumber(log.sleepHours)}時間 / ${formatEnvironment(log.environment, log.temperatureC)}</p>
           <p class="list-note">
             ${displayNumber(log.metrics.distanceKm)}km / ${escapeHtml(log.metrics.duration || "-")} / ${escapeHtml(log.metrics.avgPace || "-")} / 平均HR ${displayNumber(log.metrics.avgHr)}
           </p>
@@ -506,7 +529,7 @@ function renderAiHandoff() {
     `AIとの進め方: ${coaching.collaborationStyle || "未設定"}`,
     `最新ログ: ${latestLog.date} / ${latestLog.sessionType}`,
     `当日の予定メニュー: ${plannedSession?.planned || "未登録"}`,
-    `主観データ: RPE ${latestLog.rpe}, 痛み ${latestLog.pain}, 睡眠 ${latestLog.sleepHours}h`,
+    `主観データ: RPE ${latestLog.rpe}, 痛み ${latestLog.pain}, 睡眠 ${latestLog.sleepHours}h, 環境 ${formatEnvironment(latestLog.environment, latestLog.temperatureC)}`,
     `Garmin指標: 距離 ${displayNumber(latestLog.metrics.distanceKm)}km, 時間 ${latestLog.metrics.duration || "-"}, 平均ペース ${latestLog.metrics.avgPace || "-"}, 平均HR ${displayNumber(latestLog.metrics.avgHr)}, 最大HR ${displayNumber(latestLog.metrics.maxHr)}`,
     `ラップ要約: ${latestLog.metrics.lapsSummary || "なし"}`,
     `コーチメモ: ${latestLog.notes || "なし"}`,
@@ -544,7 +567,6 @@ function buildDashboard(appState, latestLog) {
   const coaching = appState.coaching || {};
   const phase = coaching.currentPhase || getRacePhase(mainRace);
   const focus = coaching.currentFocus || defaultFocusByPhase(phase);
-  const plannedSession = getPlannedSessionForDate(appState.weekPlans, log.date);
   const cycleWeek = coaching.cycleWeek || "1";
 
   if (!latestLog) {
@@ -617,6 +639,7 @@ function buildFeedback(log, appState) {
   const coaching = appState.coaching || {};
   const phase = coaching.currentPhase || getRacePhase(mainRace);
   const focus = coaching.currentFocus || defaultFocusByPhase(phase);
+  const plannedSession = getPlannedSessionForDate(appState.weekPlans, log.date);
 
   const goodPoints = [
     sessionMode === "interval"
@@ -661,7 +684,7 @@ function buildFeedback(log, appState) {
       ? `${mainRace.name}まであと${Math.max(daysUntil(mainRace.date), 0)}日。現在値は${fitness.label}で、目標${mainRace.targetTime}に対して${fitness.gapNote}。`
       : `${fitness.note} 目標大会を主目標に設定すると、現在値の評価がより具体化されます。`,
     nextProposal: `${plannedSession ? `当日の予定は「${plannedSession.planned}」でした。` : "当日の予定メニューは未登録です。"} ${plans.weekly[1] || "次回練習案を出すには、主目標大会または直近ログを増やしてください。"}`,
-    supplement: `${buildSupplement(log, fatigue, mainRace)} ${plannedSession ? `この日は予定メニュー「${plannedSession.planned}」との比較前提で評価しています。` : "週次予定メニューを登録すると、予定との差分で提案できます。"} 必ず本人と協議のうえで最終決定してください。`,
+    supplement: `${buildEnvironmentComment(log)} ${buildSupplement(log, fatigue, mainRace)} ${plannedSession ? `この日は予定メニュー「${plannedSession.planned}」との比較前提で評価しています。` : "週次予定メニューを登録すると、予定との差分で提案できます。"} 必ず本人と協議のうえで最終決定してください。`,
   };
 }
 
@@ -1116,6 +1139,22 @@ function renderPlannedSessionDetails(plannedText, coaching) {
   return details.map((item) => `<div class="planned-session-detail">${escapeHtml(item)}</div>`).join("");
 }
 
+function buildEnvironmentComment(log) {
+  if (log.environment === "treadmill") {
+    return "トレッドミル実施のため、外気温の影響は評価から外しています。";
+  }
+  if (log.temperatureC == null || Number.isNaN(log.temperatureC)) {
+    return "屋外実施ですが気温未入力のため、暑熱・寒冷の影響は限定的に扱っています。";
+  }
+  if (log.temperatureC >= 20) {
+    return `気温 ${log.temperatureC}°C のため、暑熱による心拍上昇を考慮して評価しています。`;
+  }
+  if (log.temperatureC <= 5) {
+    return `気温 ${log.temperatureC}°C のため、寒冷による動き出しの影響を考慮して評価しています。`;
+  }
+  return `気温 ${log.temperatureC}°C を踏まえて評価しています。`;
+}
+
 function extractPlanDetails(text, coaching) {
   const normalized = text || "";
   const details = [];
@@ -1318,6 +1357,18 @@ function numberOrZero(value) {
 
 function displayNumber(value) {
   return Number.isFinite(Number(value)) && Number(value) !== 0 ? Number(value) : "-";
+}
+
+function nullableNumberValue(value) {
+  if (value === "" || value == null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function formatEnvironment(environment, temperatureC) {
+  if (environment === "treadmill") return "トレッドミル";
+  if (temperatureC == null || Number.isNaN(Number(temperatureC))) return "屋外 / 気温未入力";
+  return `屋外 / ${temperatureC}°C`;
 }
 
 function escapeHtml(value) {

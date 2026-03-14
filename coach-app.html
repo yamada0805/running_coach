@@ -44,53 +44,10 @@
           <a class="button button--primary" href="#today-log">記録する</a>
           <a class="button button--ghost" href="#today-feedback">評価を見る</a>
         </div>
-        <ul class="hero-tags" aria-label="アプリの特徴">
-          <li>Garmin</li>
-          <li>固定評価</li>
-          <li>週計画</li>
-          <li>AI調整</li>
-        </ul>
       </div>
     </header>
 
     <main class="shell mobile-shell">
-      <section class="phone-card card-snapshot" id="dashboard">
-        <div class="section-head section-head--stack">
-          <div>
-            <p class="section-label">Today Snapshot</p>
-            <h2>現在地サマリー</h2>
-          </div>
-          <p class="section-note">今日の基準。</p>
-        </div>
-        <div class="snapshot-grid">
-          <article class="snapshot-tile">
-            <p class="snapshot-tile__label">疲労度</p>
-            <p class="snapshot-tile__value" id="fatigue-badge">未計算</p>
-            <p class="snapshot-tile__note" id="fatigue-note">ログ登録後に表示されます。</p>
-          </article>
-          <article class="snapshot-tile">
-            <p class="snapshot-tile__label">走力の現在値</p>
-            <p class="snapshot-tile__value" id="fitness-badge">未計算</p>
-            <p class="snapshot-tile__note" id="fitness-note">主目標レースと最新ログをもとに算出します。</p>
-          </article>
-          <article class="snapshot-tile snapshot-tile--wide">
-            <p class="snapshot-tile__label">主目標レース</p>
-            <p class="snapshot-tile__value" id="goal-badge">未設定</p>
-            <p class="snapshot-tile__note" id="goal-note">大会を登録してください。</p>
-          </article>
-          <article class="snapshot-tile">
-            <p class="snapshot-tile__label">現在の期</p>
-            <p class="snapshot-tile__value" id="phase-badge">未設定</p>
-            <p class="snapshot-tile__note" id="phase-note">期分け設定を保存してください。</p>
-          </article>
-          <article class="snapshot-tile">
-            <p class="snapshot-tile__label">今週の主役</p>
-            <p class="snapshot-tile__value" id="focus-badge">未設定</p>
-            <p class="snapshot-tile__note" id="focus-note">AIと一緒に微修正する基準です。</p>
-          </article>
-        </div>
-      </section>
-
       <section class="phone-card card-log" id="today-log">
         <div class="section-head section-head--stack">
           <div>
@@ -114,7 +71,7 @@
                 <p class="section-label">Step 1</p>
                 <h3>Garmin画像を追加</h3>
               </div>
-              <button class="button button--ghost button--small" type="button" id="run-ocr">画像から数値を読む</button>
+              <button class="button button--ghost button--small" type="button" id="run-ocr">OCRで数値を反映</button>
             </div>
             <div class="upload-stack">
               <label class="upload-card">
@@ -136,6 +93,7 @@
                 <span class="file-count" id="laps-count">未選択</span>
               </label>
             </div>
+            <p class="section-note">画像を選んだあとで押すと、距離・時間・心拍などを自動入力します。</p>
             <p class="status-text" id="ocr-status" aria-live="polite"></p>
           </div>
 
@@ -147,11 +105,6 @@
               </div>
             </div>
             <div class="planned-session-box" id="planned-session-box">
-              <p class="planned-session-box__label">この日の予定メニュー</p>
-              <p class="planned-session-box__title" id="planned-session-title">未登録</p>
-              <p class="planned-session-box__note" id="planned-session-note">週次予定メニューを登録すると、ここに自動表示されます。</p>
-              <div class="planned-session-details" id="planned-session-details"></div>
-            </div>
             <div class="compact-grid">
               <label>
                 日付
@@ -171,7 +124,24 @@
                 </select>
               </label>
             </div>
+            <div class="planned-session-box" id="planned-session-box">
+              <p class="planned-session-box__label">この日の予定メニュー</p>
+              <p class="planned-session-box__title" id="planned-session-title">未登録</p>
+              <p class="planned-session-box__note" id="planned-session-note">週次予定メニューを登録すると、ここに自動表示されます。</p>
+              <div class="planned-session-details" id="planned-session-details"></div>
+            </div>
             <div class="metric-inputs">
+              <label class="metric-pill metric-pill--select">
+                <span>環境</span>
+                <select name="environment">
+                  <option value="outdoor">屋外</option>
+                  <option value="treadmill">トレッドミル</option>
+                </select>
+              </label>
+              <label class="metric-pill">
+                <span>気温</span>
+                <input name="temperatureC" type="number" step="0.1" placeholder="12" />
+              </label>
               <label class="metric-pill">
                 <span>RPE</span>
                 <input name="rpe" type="number" min="1" max="10" placeholder="7" required />
@@ -200,9 +170,10 @@
             <div class="panel-head">
               <div>
                 <p class="section-label">Step 3</p>
-                <h3>OCR結果を補正</h3>
+                <h3>自動入力された数値を確認</h3>
               </div>
             </div>
+            <p class="section-note">Step 1でOCRを使ったときだけ確認してください。使わない日は手入力でも大丈夫です。</p>
             <div class="compact-grid">
               <label>
                 距離(km)
@@ -236,6 +207,43 @@
             <p class="status-text" id="log-status" aria-live="polite"></p>
           </div>
         </form>
+      </section>
+
+      <section class="phone-card card-snapshot" id="dashboard">
+        <div class="section-head section-head--stack">
+          <div>
+            <p class="section-label">Today Snapshot</p>
+            <h2>現在地サマリー</h2>
+          </div>
+          <p class="section-note">今日の判断基準だけ表示。</p>
+        </div>
+        <div class="snapshot-grid">
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">疲労度</p>
+            <p class="snapshot-tile__value" id="fatigue-badge">未計算</p>
+            <p class="snapshot-tile__note" id="fatigue-note">ログ登録後に表示されます。</p>
+          </article>
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">走力の現在値</p>
+            <p class="snapshot-tile__value" id="fitness-badge">未計算</p>
+            <p class="snapshot-tile__note" id="fitness-note">主目標レースと最新ログをもとに算出します。</p>
+          </article>
+          <article class="snapshot-tile snapshot-tile--wide">
+            <p class="snapshot-tile__label">主目標レース</p>
+            <p class="snapshot-tile__value" id="goal-badge">未設定</p>
+            <p class="snapshot-tile__note" id="goal-note">大会を登録してください。</p>
+          </article>
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">現在の期</p>
+            <p class="snapshot-tile__value" id="phase-badge">未設定</p>
+            <p class="snapshot-tile__note" id="phase-note">期分け設定を保存してください。</p>
+          </article>
+          <article class="snapshot-tile">
+            <p class="snapshot-tile__label">今週の主役</p>
+            <p class="snapshot-tile__value" id="focus-badge">未設定</p>
+            <p class="snapshot-tile__note" id="focus-note">AIと一緒に微修正する基準です。</p>
+          </article>
+        </div>
       </section>
 
       <section class="phone-card card-feedback" id="today-feedback">

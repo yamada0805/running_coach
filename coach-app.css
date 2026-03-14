@@ -52,11 +52,11 @@ textarea {
 }
 
 .mobile-hero {
-  padding: 18px 0 14px;
+  padding: 10px 0 8px;
 }
 
 .mobile-hero .shell {
-  padding: 22px 20px 16px;
+  padding: 16px 18px 14px;
   border-radius: 34px;
   background:
     linear-gradient(160deg, rgba(255, 252, 247, 0.96), rgba(255, 241, 227, 0.9)),
@@ -115,28 +115,10 @@ h1 {
   margin-top: 18px;
 }
 
-.hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  padding: 0;
-  margin: 16px 0 0;
-}
-
-.hero-tags li {
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(114, 90, 72, 0.1);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
 .mobile-shell {
   display: grid;
   gap: 14px;
-  padding: 8px 0 28px;
+  padding: 4px 0 28px;
 }
 
 .phone-card {
@@ -169,12 +151,13 @@ h1 {
 .status-text,
 .snapshot-tile__note,
 .list-note {
-  color: var(--muted);
-  font-size: 0.82rem;
+  color: #5f5248;
+  font-size: 0.88rem;
 }
 
 .status-text {
   margin: 0;
+  font-weight: 700;
 }
 
 .button {
@@ -399,7 +382,7 @@ h1 {
 
 .metric-inputs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-block: 12px;
 }
@@ -426,6 +409,10 @@ h1 {
   background: transparent;
   font-size: 1.15rem;
   font-weight: 900;
+}
+
+.metric-pill input:disabled {
+  color: var(--muted);
 }
 
 input,
@@ -460,6 +447,10 @@ textarea:focus,
   background: rgba(255, 250, 245, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.82);
   box-shadow: 0 10px 28px rgba(86, 55, 34, 0.12);
+}
+
+#log-status {
+  margin-top: 8px;
 }
 
 .feedback-card,
@@ -603,6 +594,10 @@ textarea:focus,
 
   .compact-grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .metric-inputs {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .feedback-stack {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "running-coach-app-v1";
+const CACHE_NAME = "running-coach-app-v2";
 const APP_ASSETS = [
   "./coach-app.html",
   "./coach-app.css",
@@ -12,6 +12,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_ASSETS))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
@@ -20,6 +21,7 @@ self.addEventListener("activate", (event) => {
       Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
     )
   );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
